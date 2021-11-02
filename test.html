@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>test</title>
+    <style>
+      body {
+        margin-top: 5vh;
+        background-color: #aaa;
+        text-align: center;
+      }
+
+      canvas {
+        background-color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import balsamiqWireframeToCanvas from "./src/index.js";
+
+      let font = new FontFace("balsamiq", "url(fonts/BalsamiqSans-Regular.ttf)");
+      await font.load();
+      document.fonts.add(font);
+
+      let data = await fetch("./frontend.json");
+      let json = await data.json();
+
+      let canvas = balsamiqWireframeToCanvas(json);
+
+      document.getElementById("root").appendChild(canvas);
+    </script>
+  </body>
+</html>
