@@ -26,7 +26,7 @@ export default class Balsamiq {
     return `rgb(${defaultColor},${alpha})`;
   }
 
-  static TextArea(control, ctx) {
+  static drawRectangle(control, ctx) {
     ctx.beginPath();
     ctx.fillStyle = this.setColor(
       control.properties?.color,
@@ -39,17 +39,12 @@ export default class Balsamiq {
     ctx.stroke();
   }
 
+  static TextArea(control, ctx) {
+    this.drawRectangle(control, ctx);
+  }
+
   static Canvas(control, ctx) {
-    ctx.beginPath();
-    ctx.fillStyle = this.setColor(
-      control.properties?.color,
-      "255,255,255",
-      control.properties?.backgroundAlpha
-    );
-    ctx.strokeStyle = this.setColor(control.properties?.borderColor, "0,0,0");
-    ctx.rect(control.x, control.y, control.w || control.measuredW, control.h || control.measuredH);
-    ctx.fill();
-    ctx.stroke();
+    this.drawRectangle(control, ctx);
   }
 
   static Label(control, ctx) {

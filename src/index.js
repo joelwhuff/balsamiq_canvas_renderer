@@ -3,7 +3,7 @@ import Balsamiq from "./Balsamiq.js";
 /**
  * @param {Object} data - Balsamiq JSON data
  * @param {number} padding - Padding for the canvas. Defaults to 10 to prevent items from clipping off the edge of the canvas
- * @returns {Promise} Canvas element
+ * @returns {canvas} Canvas element
  */
 export default function balsamiqWireframeToCanvas({ mockup }, padding = 10) {
   let canvas = document.createElement("canvas");
