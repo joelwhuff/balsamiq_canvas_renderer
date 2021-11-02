@@ -26,8 +26,20 @@ export default function balsamiqWireframeToCanvas({ mockup }, padding = 10) {
       return a.zOrder - b.zOrder;
     })
     .forEach((control) => {
+      ctx.lineWidth = 2.6;
       Balsamiq.render(control, ctx);
     });
+
+  const render = () => {
+    ctx.clearRect(0, 0, 2000, 4000);
+    ctx.lineDashOffset += 0.4;
+    mockup.controls.control.forEach((control) => {
+      ctx.lineWidth = 2.6;
+      Balsamiq.render(control, ctx);
+    });
+    window.requestAnimationFrame(render);
+  };
+  // render();
 
   return canvas;
 }

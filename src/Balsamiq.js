@@ -41,6 +41,7 @@ export default class Balsamiq {
 
   static TextArea(control, ctx) {
     this.drawRectangle(control, ctx);
+    // handle text rendering
   }
 
   static Canvas(control, ctx) {
@@ -88,7 +89,53 @@ export default class Balsamiq {
     );
   }
 
-  static Arrow(control, ctx) {}
+  static Arrow(control, ctx) {
+    ctx.beginPath();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = this.setColor(control.properties?.color, "0,0,0", control.properties?.backgroundAlpha);
+    if (control.properties?.stroke) {
+      control.properties.stroke === "dotted" ? ctx.setLineDash([0.8, 12]) : ctx.setLineDash([28, 46]);
+    }
+
+    let x = parseInt(control.x);
+    let y = parseInt(control.y);
+    let vec = {
+      x: control.properties.p2.x - control.properties.p0.x,
+      y: control.properties.p2.y - control.properties.p0.y,
+    };
+    vec.x *= control.properties.p1.x;
+    vec.y *= control.properties.p1.x;
+
+    let perpVec = {
+      x: vec.y * control.properties.p1.y * 3.4,
+      y: -vec.x * control.properties.p1.y * 3.4,
+    };
+
+    let ctrl = { x: vec.x + perpVec.x, y: vec.y + perpVec.y };
+
+    ctx.moveTo(x + control.properties.p0.x, y + control.properties.p0.y);
+    // ctx.lineTo(x + control.properties.p2.x, y + control.properties.p2.y);
+    ctx.quadraticCurveTo(
+      x + control.properties.p0.x + ctrl.x,
+      y + control.properties.p0.y + ctrl.y,
+      x + control.properties.p2.x,
+      y + control.properties.p2.y
+    );
+    ctx.stroke();
+
+    // ctx.beginPath();
+    // ctx.fillStyle = "blue";
+    // ctx.arc(
+    //   x + control.properties.p0.x + vec.x + vec.y * control.properties.p1.y,
+    //   y + control.properties.p0.y + vec.y + -vec.x * control.properties.p1.y,
+    //   7,
+    //   0,
+    //   Math.PI * 2
+    // );
+    // ctx.fill();
+
+    ctx.setLineDash([]);
+  }
 
   static Icon(control, ctx) {}
 
