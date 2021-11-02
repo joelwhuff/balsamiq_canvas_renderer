@@ -1,5 +1,9 @@
 import { getRGBFromDecimalColor } from "./utils.js";
 
+const DEFAULT_COLORS = {
+  blue: "43,120,228",
+};
+
 export default class Balsamiq {
   /**
    * @param {Object} control
@@ -7,95 +11,91 @@ export default class Balsamiq {
    */
   static render(control, ctx) {
     let typeID = control.typeID;
-    this[typeID]?.(control, ctx) ?? console.log(`'${typeID}' rendering not implemented`);
+    if (typeID in this) {
+      this[typeID](control, ctx);
+    } else {
+      console.log(`'${typeID}' rendering not implemented`);
+    }
+  }
+
+  static setColor(color, defaultColor, alpha = 1) {
+    if (color !== undefined) {
+      return getRGBFromDecimalColor(color, alpha);
+    }
+
+    return `rgb(${defaultColor},${alpha})`;
   }
 
   static TextArea(control, ctx) {
     ctx.beginPath();
-    ctx.strokeStyle =
-      control.properties?.borderColor !== undefined
-        ? getRGBFromDecimalColor(control.properties.borderColor, 1)
-        : `rgba(0,0,0,1)`;
-    ctx.fillStyle =
-      control.properties?.color !== undefined
-        ? getRGBFromDecimalColor(control.properties.color, control.properties?.backgroundAlpha)
-        : `rgba(255,255,255,${control.properties?.backgroundAlpha ?? 1})`;
-    ctx.rect(control.x, control.y, control.w || control.measuredW, control.h || control.measuredH);
+    ctx.fillStyle = this.setColor(
+      control.properties?.color,
+      "255,255,255",
+      control.properties?.backgroundAlpha
+    );
+    ctx.strokeStyle = this.setColor(control.properties?.borderColor, "0,0,0");
+    ctx.rect(control.x, control.y, control.w ?? control.measuredW, control.h ?? control.measuredH);
     ctx.fill();
     ctx.stroke();
-
-    return 0;
   }
 
   static Canvas(control, ctx) {
     ctx.beginPath();
-    ctx.strokeStyle =
-      control.properties?.borderColor !== undefined
-        ? getRGBFromDecimalColor(control.properties.borderColor, 1)
-        : `rgba(0,0,0,1)`;
-    ctx.fillStyle =
-      control.properties?.color !== undefined
-        ? getRGBFromDecimalColor(control.properties.color, control.properties?.backgroundAlpha)
-        : `rgba(255,255,255,${control.properties?.backgroundAlpha ?? 1})`;
+    ctx.fillStyle = this.setColor(
+      control.properties?.color,
+      "255,255,255",
+      control.properties?.backgroundAlpha
+    );
+    ctx.strokeStyle = this.setColor(control.properties?.borderColor, "0,0,0");
     ctx.rect(control.x, control.y, control.w || control.measuredW, control.h || control.measuredH);
     ctx.fill();
     ctx.stroke();
-
-    return 0;
   }
 
   static Label(control, ctx) {
     ctx.beginPath();
     ctx.textAlign = "start";
     ctx.textBaseline = "top";
-
+    ctx.fillStyle = this.setColor(control.properties?.color, "0,0,0");
     if (control.properties?.size) {
       ctx.font = `${control.properties?.bold ? "bold " : ""}${control.properties.size}px balsamiq`;
     } else {
       ctx.font = "13px balsamiq";
     }
-    ctx.fillStyle =
-      control.properties?.color !== undefined
-        ? getRGBFromDecimalColor(control.properties.color, 1)
-        : `rgba(0,0,0,1)`;
     ctx.fillText(control.properties.text, control.x, parseInt(control.y) + 4);
-
-    return 0;
   }
 
   static TextInput(control, ctx) {
     ctx.beginPath();
-    ctx.strokeStyle =
-      control.properties?.borderColor !== undefined
-        ? getRGBFromDecimalColor(control.properties.borderColor, 1)
-        : `rgba(0,0,0,1)`;
-    ctx.fillStyle =
-      control.properties?.color !== undefined
-        ? getRGBFromDecimalColor(control.properties.color, control.properties?.backgroundAlpha)
-        : `rgba(255,255,255,${control.properties?.backgroundAlpha ?? 1})`;
-    ctx.rect(control.x, control.y, control.w || control.measuredW, control.h || control.measuredH);
+    ctx.fillStyle = this.setColor(
+      control.properties?.color,
+      "255,255,255",
+      control.properties?.backgroundAlpha
+    );
+    ctx.strokeStyle = this.setColor(control.properties?.borderColor, "0,0,0");
+    ctx.rect(control.x, control.y, control.w ?? control.measuredW, control.h ?? control.measuredH);
     ctx.fill();
     ctx.stroke();
 
     ctx.beginPath();
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-
+    ctx.fillStyle = this.setColor(control.properties?.textColor, "0,0,0");
     if (control.properties?.size) {
       ctx.font = `${control.properties?.bold ? "bold " : ""}${control.properties.size}px balsamiq`;
     } else {
       ctx.font = "13px balsamiq";
     }
-    ctx.fillStyle =
-      control.properties?.textColor !== undefined
-        ? getRGBFromDecimalColor(control.properties.textColor, 1)
-        : `rgba(0,0,0,1)`;
     ctx.fillText(
       control.properties.text,
-      parseInt(control.x) + (control.w || control.measuredW) / 2,
+      parseInt(control.x) + (control.w ?? control.measuredW) / 2,
       parseInt(control.y) + control.measuredH / 2
     );
-
-    return 0;
   }
+
+  static Arrow(control, ctx) {}
+
+  static Icon(control, ctx) {}
+
+  static HRule(control, ctx) {}
 }
