@@ -4,6 +4,5 @@ Todo:
 
 - Address all options that each control type has
 - Test text for colors - {color:blue}text{color}
-- Implement Arrow, Icon, HRule rendering
-- Add rendering for icon symbols
+- Implement HRule rendering and address **group**
 - Address different text Alignments - left,right,center

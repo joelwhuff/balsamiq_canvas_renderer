@@ -1,8 +1,5 @@
+import { BORDER_WIDTH } from "./balsamiqConstants.js";
 import { getRGBFromDecimalColor } from "./utils.js";
-
-const DEFAULT_COLORS = {
-  blue: "43,120,228",
-};
 
 export default class Balsamiq {
   /**
@@ -12,7 +9,9 @@ export default class Balsamiq {
   static render(control, ctx) {
     let typeID = control.typeID;
     if (typeID in this) {
+      //maybe save ctx state here
       this[typeID](control, ctx);
+      //ctx.restore
     } else {
       console.log(`'${typeID}' rendering not implemented`);
     }
@@ -34,7 +33,12 @@ export default class Balsamiq {
       control.properties?.backgroundAlpha
     );
     ctx.strokeStyle = this.setColor(control.properties?.borderColor, "0,0,0");
-    ctx.rect(control.x, control.y, control.w ?? control.measuredW, control.h ?? control.measuredH);
+    ctx.rect(
+      parseInt(control.x) + BORDER_WIDTH / 2,
+      parseInt(control.y) + BORDER_WIDTH / 2,
+      (control.w ?? control.measuredW) - BORDER_WIDTH,
+      (control.h ?? control.measuredH) - BORDER_WIDTH
+    );
     ctx.fill();
     ctx.stroke();
   }
@@ -107,8 +111,8 @@ export default class Balsamiq {
     vec.y *= control.properties.p1.x;
 
     let perpVec = {
-      x: vec.y * control.properties.p1.y * 3.4,
-      y: -vec.x * control.properties.p1.y * 3.4,
+      x: vec.y * control.properties.p1.y * 3.6,
+      y: -vec.x * control.properties.p1.y * 3.6,
     };
 
     let ctrl = { x: vec.x + perpVec.x, y: vec.y + perpVec.y };
@@ -137,7 +141,26 @@ export default class Balsamiq {
     ctx.setLineDash([]);
   }
 
-  static Icon(control, ctx) {}
+  static Icon(control, ctx) {
+    let width = control.measuredW - 4;
+
+    ctx.beginPath();
+    ctx.fillStyle = this.setColor(control.properties?.color, "0,0,0");
+    ctx.arc(parseInt(control.x) + width / 2, parseInt(control.y) + width / 2, width / 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (control.properties.icon.ID !== "check-circle") return;
+
+    ctx.beginPath();
+    ctx.lineWidth = 3.5;
+    ctx.strokeStyle = "#fff";
+    ctx.moveTo(parseInt(control.x) + 4.5, parseInt(control.y) + width / 2);
+    ctx.lineTo(parseInt(control.x) + 8.5, parseInt(control.y) + width / 2 + 4);
+    ctx.lineTo(parseInt(control.x) + 15, parseInt(control.y) + width / 2 - 2.5);
+    ctx.stroke();
+  }
 
   static HRule(control, ctx) {}
+
+  static __group__() {}
 }
