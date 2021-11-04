@@ -31,15 +31,15 @@ export default function balsamiqWireframeToCanvas({ mockup }, padding = 5) {
       Balsamiq.render(control, ctx);
     });
 
-  const render = () => {
-    ctx.clearRect(0, 0, 2000, 4000);
-    ctx.lineDashOffset += 0.4;
-    mockup.controls.control.forEach((control) => {
-      ctx.lineWidth = 2.7;
-      Balsamiq.render(control, ctx);
-    });
-    window.requestAnimationFrame(render);
-  };
+  // const render = () => {
+  //   window.requestAnimationFrame(render);
+  //   ctx.clearRect(0, 0, 2000, 4000);
+  //   ctx.lineDashOffset += 0.4;
+  //   mockup.controls.control.forEach((control) => {
+  //     ctx.lineWidth = BORDER_WIDTH;
+  //     Balsamiq.render(control, ctx);
+  //   });
+  // };
   //render();
 
   return canvas;

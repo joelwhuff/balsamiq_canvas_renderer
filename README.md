@@ -2,7 +2,8 @@ Test page - https://joelwhuff.github.io/balsamiq_wireframe_canvas_renderer/
 
 Todo:
 
-- Address all options that each control type has
-- Test text for colors - {color:blue}text{color}
-- Implement HRule rendering and address _group_
-- Address different text Alignments - left,right,center
+- Look through all properties of current control types
+- Address different text alignments
+- Support rendering arrow heads
+- Store default colors
+- Polish and minimize code

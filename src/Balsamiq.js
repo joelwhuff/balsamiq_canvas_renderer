@@ -1,4 +1,4 @@
-import { BORDER_WIDTH } from "./balsamiqConstants.js";
+import { BORDER_WIDTH, DEFAULT_COLORS } from "./balsamiqConstants.js";
 import { getRGBFromDecimalColor } from "./utils.js";
 
 export default class Balsamiq {
@@ -13,7 +13,7 @@ export default class Balsamiq {
       this[typeID](control, ctx);
       //ctx.restore
     } else {
-      console.log(`'${typeID}' rendering not implemented`);
+      console.log(`'${typeID}' control type not implemented`);
     }
   }
 
@@ -56,13 +56,29 @@ export default class Balsamiq {
     ctx.beginPath();
     ctx.textAlign = "start";
     ctx.textBaseline = "top";
-    ctx.fillStyle = this.setColor(control.properties?.color, "0,0,0");
     if (control.properties?.size) {
       ctx.font = `${control.properties?.bold ? "bold " : ""}${control.properties.size}px balsamiq`;
     } else {
       ctx.font = "13px balsamiq";
     }
-    ctx.fillText(control.properties.text, control.x, parseInt(control.y) + 4);
+
+    let text = control.properties.text;
+    let x = parseInt(control.x);
+
+    if (text.includes("{color:")) {
+      let { width } = ctx.measureText(text.split("{color:")[0]);
+      ctx.fillStyle = `rgb(${DEFAULT_COLORS[text.split("{color:")[1].split("}")[0]]})`;
+      let colorText = text.split("}")[1].split("{")[0];
+      ctx.fillText(colorText, parseInt(control.x) + width, parseInt(control.y) + 4);
+      text = text.split("{color:")[0];
+
+      control.properties.text = control.properties.text.split("{color}")[1];
+      control.x = parseInt(control.x) + ctx.measureText(text + colorText).width + 2;
+      control.properties.text && this.Label(control, ctx);
+    }
+
+    ctx.fillStyle = this.setColor(control.properties?.color, "0,0,0");
+    ctx.fillText(text, x, parseInt(control.y) + 4);
   }
 
   static TextInput(control, ctx) {
@@ -97,9 +113,8 @@ export default class Balsamiq {
     ctx.beginPath();
     ctx.lineWidth = 4;
     ctx.strokeStyle = this.setColor(control.properties?.color, "0,0,0", control.properties?.backgroundAlpha);
-    if (control.properties?.stroke) {
-      control.properties.stroke === "dotted" ? ctx.setLineDash([0.8, 12]) : ctx.setLineDash([28, 46]);
-    }
+    if (control.properties?.stroke === "dotted") ctx.setLineDash([0.8, 12]);
+    else if (control.properties?.stroke === "dashed") ctx.setLineDash([28, 46]);
 
     let x = parseInt(control.x);
     let y = parseInt(control.y);
@@ -118,7 +133,6 @@ export default class Balsamiq {
     let ctrl = { x: vec.x + perpVec.x, y: vec.y + perpVec.y };
 
     ctx.moveTo(x + control.properties.p0.x, y + control.properties.p0.y);
-    // ctx.lineTo(x + control.properties.p2.x, y + control.properties.p2.y);
     ctx.quadraticCurveTo(
       x + control.properties.p0.x + ctrl.x,
       y + control.properties.p0.y + ctrl.y,
@@ -126,17 +140,6 @@ export default class Balsamiq {
       y + control.properties.p2.y
     );
     ctx.stroke();
-
-    // ctx.beginPath();
-    // ctx.fillStyle = "blue";
-    // ctx.arc(
-    //   x + control.properties.p0.x + vec.x + vec.y * control.properties.p1.y,
-    //   y + control.properties.p0.y + vec.y + -vec.x * control.properties.p1.y,
-    //   7,
-    //   0,
-    //   Math.PI * 2
-    // );
-    // ctx.fill();
 
     ctx.setLineDash([]);
   }
@@ -149,7 +152,9 @@ export default class Balsamiq {
     ctx.arc(parseInt(control.x) + width / 2, parseInt(control.y) + width / 2, width / 2, 0, Math.PI * 2);
     ctx.fill();
 
-    if (control.properties.icon.ID !== "check-circle") return;
+    if (!control.properties.icon.ID.includes("check-circle")) {
+      return;
+    }
 
     ctx.beginPath();
     ctx.lineWidth = 3.5;
@@ -160,7 +165,25 @@ export default class Balsamiq {
     ctx.stroke();
   }
 
-  static HRule(control, ctx) {}
+  static HRule(control, ctx) {
+    ctx.beginPath();
+    ctx.strokeStyle = this.setColor(control.properties?.color, "0,0,0", control.properties?.backgroundAlpha);
+    if (control.properties?.stroke === "dotted") ctx.setLineDash([0.7, 7.5]);
+    else if (control.properties?.stroke === "dashed") ctx.setLineDash([18, 30]);
+    ctx.moveTo(control.x, control.y);
+    ctx.lineTo(parseInt(control.x) + parseInt(control.w ?? control.measuredW), control.y);
+    ctx.stroke();
+  }
 
-  static __group__() {}
+  static __group__(control, ctx) {
+    control.children.controls.control
+      .sort((a, b) => {
+        return a.zOrder - b.zOrder;
+      })
+      .forEach((childControl) => {
+        childControl.x = parseInt(childControl.x) + parseInt(control.x);
+        childControl.y = parseInt(childControl.y) + parseInt(control.y);
+        this.render(childControl, ctx);
+      });
+  }
 }

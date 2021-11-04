@@ -7,13 +7,18 @@
     <title>test</title>
     <style>
       body {
-        margin-top: 5vh;
+        margin-top: 20px;
         background-color: #000;
         text-align: center;
       }
 
       canvas {
+        margin-top: 20px;
         background-color: #fff;
+      }
+
+      button {
+        margin: 4px;
       }
     </style>
   </head>
@@ -26,12 +31,31 @@
       await font.load();
       document.fonts.add(font);
 
-      let data = await fetch("./frontend.json");
-      let json = await data.json();
+      const makeButtons = () => {
+        let files = ["backend", "devops", "frontend", "intro", "java"];
 
-      let canvas = balsamiqWireframeToCanvas(json);
+        files.forEach((file) => {
+          let button = document.createElement("button");
+          button.textContent = file;
 
-      document.getElementById("root").appendChild(canvas);
+          button.onclick = () => {
+            fetch(`./test_wireframes/${file}.json`)
+              .then((data) => {
+                return data.json();
+              })
+              .then((json) => {
+                let canvas = balsamiqWireframeToCanvas(json);
+                let root = document.getElementById("root");
+
+                root.firstChild && root.removeChild(root.firstChild);
+
+                root.appendChild(canvas);
+              });
+          };
+          document.body.insertBefore(button, document.body.firstChild);
+        });
+      };
+      makeButtons();
     </script>
   </body>
 </html>
