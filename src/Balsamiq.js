@@ -1,5 +1,4 @@
-import { BORDER_WIDTH, DEFAULT_COLORS } from "./balsamiqConstants.js";
-import { getRGBFromDecimalColor } from "./utils.js";
+import { ARROW_WIDTH, BORDER_WIDTH, DEFAULT_COLORS } from "./balsamiqConstants.js";
 
 export default class Balsamiq {
   /**
@@ -9,9 +8,9 @@ export default class Balsamiq {
   static render(control, ctx) {
     let typeID = control.typeID;
     if (typeID in this) {
-      //maybe save ctx state here
+      ctx.save();
       this[typeID](control, ctx);
-      //ctx.restore
+      ctx.restore();
     } else {
       console.log(`'${typeID}' control type not implemented`);
     }
@@ -19,10 +18,16 @@ export default class Balsamiq {
 
   static setColor(color, defaultColor, alpha = 1) {
     if (color !== undefined) {
-      return getRGBFromDecimalColor(color, alpha);
+      return `rgba(${(color >> 16) & 0xff},${(color >> 8) & 0xff},${color & 0xff},${alpha})`;
     }
 
     return `rgb(${defaultColor},${alpha})`;
+  }
+
+  static setFontProperties(control, ctx) {
+    ctx.font = `${control.properties?.italic ? "italic " : ""}${control.properties?.bold ? "bold " : ""}${
+      control.properties?.size ? control.properties.size + "px" : "13px"
+    } balsamiq`;
   }
 
   static drawRectangle(control, ctx) {
@@ -56,15 +61,10 @@ export default class Balsamiq {
     ctx.beginPath();
     ctx.textAlign = "start";
     ctx.textBaseline = "top";
-    if (control.properties?.size) {
-      ctx.font = `${control.properties?.bold ? "bold " : ""}${control.properties.size}px balsamiq`;
-    } else {
-      ctx.font = "13px balsamiq";
-    }
+    this.setFontProperties(control, ctx);
 
     let text = control.properties.text;
     let x = parseInt(control.x);
-
     if (text.includes("{color:")) {
       let { width } = ctx.measureText(text.split("{color:")[0]);
       ctx.fillStyle = `rgb(${DEFAULT_COLORS[text.split("{color:")[1].split("}")[0]]})`;
@@ -72,6 +72,7 @@ export default class Balsamiq {
       ctx.fillText(colorText, parseInt(control.x) + width, parseInt(control.y) + 4);
       text = text.split("{color:")[0];
 
+      //create a new control object rather than altering current one
       control.properties.text = control.properties.text.split("{color}")[1];
       control.x = parseInt(control.x) + ctx.measureText(text + colorText).width + 2;
       control.properties.text && this.Label(control, ctx);
@@ -82,26 +83,13 @@ export default class Balsamiq {
   }
 
   static TextInput(control, ctx) {
-    ctx.beginPath();
-    ctx.fillStyle = this.setColor(
-      control.properties?.color,
-      "255,255,255",
-      control.properties?.backgroundAlpha
-    );
-    ctx.strokeStyle = this.setColor(control.properties?.borderColor, "0,0,0");
-    ctx.rect(control.x, control.y, control.w ?? control.measuredW, control.h ?? control.measuredH);
-    ctx.fill();
-    ctx.stroke();
+    this.drawRectangle(control, ctx);
 
     ctx.beginPath();
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = this.setColor(control.properties?.textColor, "0,0,0");
-    if (control.properties?.size) {
-      ctx.font = `${control.properties?.bold ? "bold " : ""}${control.properties.size}px balsamiq`;
-    } else {
-      ctx.font = "13px balsamiq";
-    }
+    this.setFontProperties(control, ctx);
     ctx.fillText(
       control.properties.text,
       parseInt(control.x) + (control.w ?? control.measuredW) / 2,
@@ -110,46 +98,34 @@ export default class Balsamiq {
   }
 
   static Arrow(control, ctx) {
+    let x = parseInt(control.x);
+    let y = parseInt(control.y);
+    let { p0, p1, p2 } = control.properties;
+    let xVector = { x: (p2.x - p0.x) * p1.x, y: (p2.y - p0.y) * p1.x };
+
     ctx.beginPath();
-    ctx.lineWidth = 4;
+    ctx.lineWidth = ARROW_WIDTH;
     ctx.strokeStyle = this.setColor(control.properties?.color, "0,0,0", control.properties?.backgroundAlpha);
     if (control.properties?.stroke === "dotted") ctx.setLineDash([0.8, 12]);
     else if (control.properties?.stroke === "dashed") ctx.setLineDash([28, 46]);
-
-    let x = parseInt(control.x);
-    let y = parseInt(control.y);
-    let vec = {
-      x: control.properties.p2.x - control.properties.p0.x,
-      y: control.properties.p2.y - control.properties.p0.y,
-    };
-    vec.x *= control.properties.p1.x;
-    vec.y *= control.properties.p1.x;
-
-    let perpVec = {
-      x: vec.y * control.properties.p1.y * 3.6,
-      y: -vec.x * control.properties.p1.y * 3.6,
-    };
-
-    let ctrl = { x: vec.x + perpVec.x, y: vec.y + perpVec.y };
-
-    ctx.moveTo(x + control.properties.p0.x, y + control.properties.p0.y);
+    ctx.moveTo(x + p0.x, y + p0.y);
     ctx.quadraticCurveTo(
-      x + control.properties.p0.x + ctrl.x,
-      y + control.properties.p0.y + ctrl.y,
+      x + p0.x + xVector.x + xVector.y * p1.y * 3.6,
+      y + p0.y + xVector.y + -xVector.x * p1.y * 3.6,
       x + control.properties.p2.x,
       y + control.properties.p2.y
     );
     ctx.stroke();
-
-    ctx.setLineDash([]);
   }
 
   static Icon(control, ctx) {
+    let x = parseInt(control.x);
+    let y = parseInt(control.y);
     let width = control.measuredW - 4;
 
     ctx.beginPath();
     ctx.fillStyle = this.setColor(control.properties?.color, "0,0,0");
-    ctx.arc(parseInt(control.x) + width / 2, parseInt(control.y) + width / 2, width / 2, 0, Math.PI * 2);
+    ctx.arc(x + width / 2, y + width / 2, width / 2, 0, Math.PI * 2);
     ctx.fill();
 
     if (!control.properties.icon.ID.includes("check-circle")) {
@@ -159,16 +135,16 @@ export default class Balsamiq {
     ctx.beginPath();
     ctx.lineWidth = 3.5;
     ctx.strokeStyle = "#fff";
-    ctx.moveTo(parseInt(control.x) + 4.5, parseInt(control.y) + width / 2);
-    ctx.lineTo(parseInt(control.x) + 8.5, parseInt(control.y) + width / 2 + 4);
-    ctx.lineTo(parseInt(control.x) + 15, parseInt(control.y) + width / 2 - 2.5);
+    ctx.moveTo(x + 4.5, y + width / 2);
+    ctx.lineTo(x + 8.5, y + width / 2 + 4);
+    ctx.lineTo(x + 15, y + width / 2 - 2.5);
     ctx.stroke();
   }
 
   static HRule(control, ctx) {
     ctx.beginPath();
     ctx.strokeStyle = this.setColor(control.properties?.color, "0,0,0", control.properties?.backgroundAlpha);
-    if (control.properties?.stroke === "dotted") ctx.setLineDash([0.7, 7.5]);
+    if (control.properties?.stroke === "dotted") ctx.setLineDash([0.8, 8]);
     else if (control.properties?.stroke === "dashed") ctx.setLineDash([18, 30]);
     ctx.moveTo(control.x, control.y);
     ctx.lineTo(parseInt(control.x) + parseInt(control.w ?? control.measuredW), control.y);

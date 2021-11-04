@@ -1,4 +1,6 @@
+export const FONT_SIZE = "13px";
 export const BORDER_WIDTH = 2.7;
+export const ARROW_WIDTH = 4;
 
 export const DEFAULT_COLORS = {
   blue: "43,120,228",

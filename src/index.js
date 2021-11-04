@@ -1,18 +1,19 @@
 import Balsamiq from "./Balsamiq.js";
-import { BORDER_WIDTH } from "./balsamiqConstants.js";
+import { BORDER_WIDTH, FONT_SIZE } from "./balsamiqConstants.js";
 
 /**
- * @param {Object} data - Balsamiq JSON data
- * @param {number} padding - Padding for the canvas. Defaults to 5 to prevent items from clipping off the edge of the canvas
+ * @param {Object} data - Wireframe JSON data
+ * @param {number} padding - Padding for the canvas. Defaults to 10 to prevent items from clipping off the edge of the canvas
  * @returns {canvas} Canvas element
  */
-export default function balsamiqWireframeToCanvas({ mockup }, padding = 5) {
+export default function balsamiqWireframeToCanvas({ mockup }, padding = 10) {
   let canvas = document.createElement("canvas");
   let ctx = canvas.getContext("2d");
 
   canvas.width = parseInt(mockup.mockupW) + padding;
   canvas.height = parseInt(mockup.mockupH) + padding;
 
+  ctx.font = `${FONT_SIZE} balsamiq`;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   ctx.lineWidth = BORDER_WIDTH;
@@ -31,15 +32,19 @@ export default function balsamiqWireframeToCanvas({ mockup }, padding = 5) {
       Balsamiq.render(control, ctx);
     });
 
-  // const render = () => {
-  //   window.requestAnimationFrame(render);
-  //   ctx.clearRect(0, 0, 2000, 4000);
-  //   ctx.lineDashOffset += 0.4;
-  //   mockup.controls.control.forEach((control) => {
-  //     ctx.lineWidth = BORDER_WIDTH;
-  //     Balsamiq.render(control, ctx);
-  //   });
-  // };
+  //const render = () => {
+  //  window.requestAnimationFrame(render);
+  //  ctx.clearRect(
+  //    0,
+  //    0,
+  //    canvas.width - (mockup.mockupW - mockup.measuredW) + padding,
+  //    canvas.height - (mockup.mockupH - mockup.measuredH) + padding
+  //  );
+  //  ctx.lineDashOffset += 0.4;
+  //  mockup.controls.control.forEach((control) => {
+  //    Balsamiq.render(control, ctx);
+  //  });
+  //};
   //render();
 
   return canvas;
