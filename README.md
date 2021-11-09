@@ -1,4 +1,4 @@
-Test page - https://joelwhuff.github.io/balsamiq_wireframe_canvas_renderer/
+Test page - https://joelwhuff.github.io/balsamiq_canvas_renderer/
 
 Todo:
 
