@@ -1,1 +1,1 @@
-Test page - https://joelwhuff.github.io/balsamiq_canvas_renderer/
+Succeeded by - https://github.com/joelwhuff/balsamiq_svg_renderer
